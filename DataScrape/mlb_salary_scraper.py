@@ -8,7 +8,7 @@ from curl_cffi import requests
 
 class SpotracScraper:
     BASE_URL = "https://www.spotrac.com"
-    PAYROLL_URL = BASE_URL + "/mlb/payroll/_/year/2025"
+    PAYROLL_URL = BASE_URL + "/mlb/payroll/_/year/{year}"
     PROXIES = None
     HEADERS = {}
     COOKIES = {}
@@ -33,11 +33,12 @@ class SpotracScraper:
     def get_salaries(self, year_start: int, year_end: int):
         """ get salaries between years """
 
-        all_salaries = []
+        all_salaries = {}
         for year in range(year_start, year_end + 1):
             params = {}
+            url = self.PAYROLL_URL.format(year=year)
             response = requests.post(
-                self.PAYROLL_URL, impersonate="chrome131", verify=False, proxies=self.PROXIES, headers=self.HEADERS,
+                url, impersonate="chrome131", verify=False, proxies=self.PROXIES, headers=self.HEADERS,
                 cookies=self.COOKIES, params=params, data={"ajax": "true"}
             )
 
@@ -45,7 +46,7 @@ class SpotracScraper:
                 print(f"Year {year} failed status code: {response.status_code}")
 
             salaries = self.parse_salaries(response)
-            all_salaries.extend(salaries)
+            all_salaries[str(year)] = salaries
             print(f"Year {year} scraped")
 
         print(f"done. extracted salaries: {len(all_salaries)}")
@@ -74,11 +75,27 @@ class SpotracScraper:
 
         rows = []
         for row in table.find("tbody").find_all('tr'):
-            cols = [self.clean_spaces(td.text) for td in row.find_all("td")]
+            cols = self.parse_table_columns(row)
             row_data = dict(zip(headers, cols))
-            rows.append(row_data)
+            rows.append({row_data["Team"]: row_data})
 
         return rows
+
+    def parse_table_columns(self, row):
+        cols = []
+        for td in row.find_all("td"):
+            self.decompose_display_none(td)
+            text = self.clean_spaces(td.text)
+            cols.append(text)
+
+        return cols
+
+    @staticmethod
+    def decompose_display_none(element):
+        try:
+            element.find('span', class_='d-none').decompose()
+        except Exception:
+            pass
 
 
 if __name__ == "__main__":
