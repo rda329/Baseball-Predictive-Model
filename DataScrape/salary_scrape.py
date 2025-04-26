@@ -83,6 +83,6 @@ if __name__ == "__main__":
 # Data Struct
 #   {
 #     year: {
-#         team_initials: active_26_man_salary
+#         team_initials: salary
 #     }
 # }
