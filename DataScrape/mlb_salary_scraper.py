@@ -51,7 +51,7 @@ class SpotracScraper:
 
         print(f"done. extracted salaries: {len(all_salaries)}")
         print(all_salaries)
-        with open("mlb_salaries.json", "w") as f:
+        with open("../Data/mlb_salaries.json", "w") as f:
             f.write(json.dumps(all_salaries))
         return all_salaries
 
