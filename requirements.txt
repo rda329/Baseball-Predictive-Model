@@ -1,0 +1,7 @@
+requests
+curl_cffi
+bs4
+html5lib
+pandas
+matplotlib
+seaborn
